@@ -16,7 +16,7 @@ def plot2d(df):
 
     for i, var in enumerate(dependent_vars):
         fig.add_trace(
-            go.Scatter(x=df[var], y=df[independent_var], name=var),
+            go.Scatter(x=df[var], y=df[independent_var], name=var, mode="markers"),
             row=i//num_cols+1, col=i%num_cols+1
         )
         
