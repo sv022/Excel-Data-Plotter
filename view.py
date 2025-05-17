@@ -49,6 +49,10 @@ class XLSXViewerApp:
         self.plot_bar = tk.Frame(self.root)
         self.plot_bar.pack(fill=tk.X, pady=5, padx=5)
         
+        self.clear_selected_columns_button = tk.Button(self.plot_bar, text="Очистить", command=self.clear_selected_columns)
+        self.clear_selected_columns_button.configure(borderwidth=0, font=("Arial", 8, "bold"))
+        self.clear_selected_columns_button.pack(side=tk.LEFT, padx=10)
+        
         self.selected_columns_label = tk.Label(self.plot_bar, text="Выберите столбцы")
         self.selected_columns_label.pack(side=tk.LEFT)
         
@@ -75,6 +79,8 @@ class XLSXViewerApp:
         if not file_path:
             return
         
+        self.clear_selected_columns()
+        
         try:
             self.df = pd.read_excel(file_path)
             self.current_file = file_path
@@ -100,10 +106,11 @@ class XLSXViewerApp:
         
         self.tree["columns"] = list(self.df.columns)
         num_columns = len(self.df.columns)
+        min_w = (self.WIDTH) // (num_columns + 1)
 
         for col in self.df.columns:
             self.tree.heading(col, text=col, anchor=tk.W, command=lambda c=col: self.toggle_select_column(c))
-            self.tree.column(col, minwidth=50, stretch=True)
+            self.tree.column(col, minwidth=min_w, stretch=True)
         
         for i, row in self.df.iterrows():
             self.tree.insert("", tk.END, values=list(row))
@@ -112,19 +119,41 @@ class XLSXViewerApp:
     def toggle_select_column(self, col):
         if col in self.selected_columns:
             self.selected_columns.remove(col)
-            if self.selected_columns:
-                self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {', '.join(self.selected_columns[1::])}")
-            else:
+            if not self.selected_columns:
                 self.selected_columns_label.config(text="Выберите столбцы")
-            return
+                return
+            if len(self.selected_columns) == 1:
+                self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от остальных переменных")
+                return
+            
+            selected_cols_text = ', '.join(self.selected_columns[1::])
+            if len(selected_cols_text) > 50:
+                selected_cols_text = selected_cols_text[:50] + '...'
+            self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {selected_cols_text}")
+            
+            return        
         
         self.selected_columns.append(col)
         
-        if self.selected_columns:
-            self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {', '.join(self.selected_columns[1::])}")
+        if len(self.selected_columns) == 1:
+            self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от остальных переменных")
+            return
+        
+        selected_cols_text = ', '.join(self.selected_columns[1::])
+        if len(selected_cols_text) > 50:
+            selected_cols_text = selected_cols_text[:50] + '...'
+        self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {selected_cols_text}")
+            
+            
+    def clear_selected_columns(self):
+        self.selected_columns = []
+        self.selected_columns_label.config(text="Выберите столбцы")
         
     
     def plot_data_3d(self):
+        if self.df is None:
+            self.status_bar.config(text="Выберите файл")
+            return      
         if len(self.selected_columns) != 3:
             self.status_bar.config(text="Выберите 3 столбца")
             return
@@ -134,17 +163,17 @@ class XLSXViewerApp:
         
 
     def plot_data_2d(self):
+        if self.df is None:
+            self.status_bar.config(text="Выберите файл")
+            return
         if len(self.selected_columns) == 1:
             cols = [self.selected_columns[0]] + [col for col in self.df.columns if col != self.selected_columns[0]]
-            print(self.df[cols])
             plot2d(self.df[cols])
             return
 
         plot2d(self.df[self.selected_columns])
         
-        
-
-
+    
 if __name__ == "__main__":
     root = tk.Tk()
     app = XLSXViewerApp(root)

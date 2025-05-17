@@ -11,17 +11,17 @@ def plot2d(df):
     num_plots = len(dependent_vars)
     num_cols = int(log2(num_plots)) if num_plots > 1 else 1
     fig = make_subplots(rows=num_plots, cols=num_cols, 
-                        subplot_titles=[f"{independent_var} → {var}" for var in dependent_vars])
+                        subplot_titles=[f"{var} → {independent_var}" for var in dependent_vars])
 
 
     for i, var in enumerate(dependent_vars):
         fig.add_trace(
-            go.Scatter(x=df[independent_var], y=df[var], name=var),
+            go.Scatter(x=df[var], y=df[independent_var], name=var),
             row=i//num_cols+1, col=i%num_cols+1
         )
         
-        fig.update_xaxes(title_text=independent_var, row=i//num_cols+1, col=i%num_cols+1)
-        fig.update_yaxes(title_text=var, row=i//num_cols+1, col=i%num_cols+1)
+        fig.update_xaxes(title_text=var, row=i//num_cols+1, col=i%num_cols+1)
+        fig.update_yaxes(title_text=independent_var, row=i//num_cols+1, col=i%num_cols+1)
 
     # Общие настройки
     fig.update_layout(
