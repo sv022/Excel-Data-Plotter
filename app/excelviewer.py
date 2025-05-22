@@ -3,18 +3,18 @@ from tkinter import filedialog, ttk
 import pandas as pd
 import os
 
-from csvplot.plot3d import plot3d
-from csvplot.plot2d import plot2d
+from .csvplot.plot3d import plot3d
+from .csvplot.plot2d import plot2d
 
 
-class XLSXViewerApp:
+class ExcelViewerApp:
     def __init__(self, root):
         self.root = root
         self.WIDTH = 800
         self.HEIGHT = 600
         self.root.title("Excel Viewer")
         self.root.geometry(f"{self.WIDTH}x{self.HEIGHT}")
-        self.root.resizable(False, False)
+        # self.root.resizable(False, False)
         
         self.current_file = None
         self.df = None
@@ -57,9 +57,9 @@ class XLSXViewerApp:
         self.selected_columns_label.pack(side=tk.LEFT)
         
         self.plot2d_button = tk.Button(self.plot_bar, text="Построить 2D график", command=self.plot_data_2d)
-        self.plot2d_button.pack(side=tk.RIGHT)
+        self.plot2d_button.pack(side=tk.RIGHT, pady=5)
         self.plot3d_button = tk.Button(self.plot_bar, text="Построить 3D график", command=self.plot_data_3d)
-        self.plot3d_button.pack(side=tk.RIGHT)
+        self.plot3d_button.pack(side=tk.RIGHT, pady=5)
         
         self.status_bar = tk.Label(
             self.root, 
@@ -172,9 +172,3 @@ class XLSXViewerApp:
             return
 
         plot2d(self.df[self.selected_columns])
-        
-    
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = XLSXViewerApp(root)
-    root.mainloop()
