@@ -16,7 +16,7 @@ class ExcelViewerApp:
         self.root = root
         self.WIDTH = 800
         self.HEIGHT = 600
-        self.root.title("Excel Viewer")
+        self.root.title("Excel Data Plotter")
         self.root.geometry(f"{self.WIDTH}x{self.HEIGHT}")
         # self.root.resizable(False, False)
 
