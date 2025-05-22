@@ -19,6 +19,11 @@ class ExcelViewerApp:
         self.root.geometry(f"{self.WIDTH}x{self.HEIGHT}")
         # self.root.resizable(False, False)
 
+        try:
+            self.root.iconbitmap(r"app/public/icon.ico")
+        except Exception:
+            pass
+
         init_styles(self.root)
         locale = get_locale()
         if locale.startswith("en_"): 
