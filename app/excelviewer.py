@@ -5,6 +5,7 @@ import os
 
 from .csvplot.plot3d import plot3d
 from .csvplot.plot2d import plot2d
+from .styles import init_styles
 
 
 class ExcelViewerApp:
@@ -15,6 +16,8 @@ class ExcelViewerApp:
         self.root.title("Excel Viewer")
         self.root.geometry(f"{self.WIDTH}x{self.HEIGHT}")
         # self.root.resizable(False, False)
+
+        init_styles(self.root)
         
         self.current_file = None
         self.df = None
@@ -26,15 +29,17 @@ class ExcelViewerApp:
         button_frame = tk.Frame(self.root)
         button_frame.pack(pady=10)
         
-        self.select_button = tk.Button(
+        self.select_button = ttk.Button(
             button_frame, 
+            width=20,
             text="Выбрать файл", 
+            style="hightlight.TButton",
             command=self.open_file
         )
-        self.select_button.pack(side=tk.LEFT, padx=5)
+        self.select_button.pack(side=tk.TOP, pady=15)
         
-        self.file_label = tk.Label(button_frame, text="Файл не выбран")
-        self.file_label.pack(side=tk.LEFT, padx=5)
+        self.file_label = ttk.Label(button_frame, text="Файл не выбран")
+        self.file_label.pack(side=tk.BOTTOM)
         
         tree_frame = tk.Frame(self.root)
         tree_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -49,26 +54,29 @@ class ExcelViewerApp:
         self.plot_bar = tk.Frame(self.root)
         self.plot_bar.pack(fill=tk.X, pady=5, padx=5)
         
-        self.clear_selected_columns_button = tk.Button(self.plot_bar, text="Очистить", command=self.clear_selected_columns)
-        self.clear_selected_columns_button.configure(borderwidth=0, font=("Arial", 8, "bold"))
+        self.clear_selected_columns_button = ttk.Button(self.plot_bar, text="Очистить", command=self.clear_selected_columns)
+        self.clear_selected_columns_button.configure(style="clear.TButton")
         self.clear_selected_columns_button.pack(side=tk.LEFT, padx=10)
-        
-        self.selected_columns_label = tk.Label(self.plot_bar, text="Выберите столбцы")
+
+        self.selected_columns_label = ttk.Label(self.plot_bar, text="Выберите столбцы")
+        self.selected_columns_label.configure(style="primary.TLabel")
         self.selected_columns_label.pack(side=tk.LEFT)
-        
-        self.plot2d_button = tk.Button(self.plot_bar, text="Построить 2D график", command=self.plot_data_2d)
+
+        self.plot2d_button = ttk.Button(self.plot_bar, text="2D график", command=self.plot_data_2d)
+        self.plot2d_button.configure(style="primary.TButton")
         self.plot2d_button.pack(side=tk.RIGHT, pady=5)
-        self.plot3d_button = tk.Button(self.plot_bar, text="Построить 3D график", command=self.plot_data_3d)
+
+        self.plot3d_button = ttk.Button(self.plot_bar, text="3D график", command=self.plot_data_3d)
+        self.plot3d_button.configure(style="primary.TButton")
         self.plot3d_button.pack(side=tk.RIGHT, pady=5)
         
-        self.status_bar = tk.Label(
+        self.status_bar = ttk.Label(
             self.root, 
-            text="Готово", 
-            bd=1, 
-            relief=tk.SUNKEN, 
-            anchor=tk.W
+            text="Готово",  
+            anchor=tk.W,
+            style="status.TLabel"
         )
-        self.status_bar.pack(fill=tk.X, side=tk.BOTTOM)
+        self.status_bar.pack(fill=tk.X, side=tk.BOTTOM, padx=10)
     
     def open_file(self):
         file_path = filedialog.askopenfilename(
@@ -95,6 +103,7 @@ class ExcelViewerApp:
     def update_file_label(self):
         if self.current_file:
             self.file_label.config(text=os.path.basename(self.current_file))
+            self.file_label.configure(style="success.TLabel")
         else:
             self.file_label.config(text="Файл не выбран")
     
@@ -114,35 +123,32 @@ class ExcelViewerApp:
         
         for i, row in self.df.iterrows():
             self.tree.insert("", tk.END, values=list(row))
+
+    
+    def update_selected_cols_label(self):
+        if not self.selected_columns:
+            self.selected_columns_label.config(text="Выберите столбцы")
+            return
+        if len(self.selected_columns) == 1:
+            self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от остальных переменных")
+            return
+            
+        selected_cols_text = ', '.join(self.selected_columns[1::])
+        screen_width = self.root.winfo_width()
+        print(screen_width)
+        print(len(selected_cols_text))
+        if screen_width // len(selected_cols_text) < 16:
+            selected_cols_text = selected_cols_text[:screen_width // 16] + '...'
+        self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {selected_cols_text}")
             
     
     def toggle_select_column(self, col):
         if col in self.selected_columns:
             self.selected_columns.remove(col)
-            if not self.selected_columns:
-                self.selected_columns_label.config(text="Выберите столбцы")
-                return
-            if len(self.selected_columns) == 1:
-                self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от остальных переменных")
-                return
-            
-            selected_cols_text = ', '.join(self.selected_columns[1::])
-            if len(selected_cols_text) > 50:
-                selected_cols_text = selected_cols_text[:50] + '...'
-            self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {selected_cols_text}")
-            
-            return        
+        else:
+            self.selected_columns.append(col)
         
-        self.selected_columns.append(col)
-        
-        if len(self.selected_columns) == 1:
-            self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от остальных переменных")
-            return
-        
-        selected_cols_text = ', '.join(self.selected_columns[1::])
-        if len(selected_cols_text) > 50:
-            selected_cols_text = selected_cols_text[:50] + '...'
-        self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {selected_cols_text}")
+        self.update_selected_cols_label()
             
             
     def clear_selected_columns(self):
