@@ -6,6 +6,8 @@ import os
 from .csvplot.plot3d import plot3d
 from .csvplot.plot2d import plot2d
 from .styles import init_styles
+from .locales import locales
+from .locales.utils import get_locale
 
 
 class ExcelViewerApp:
@@ -18,6 +20,10 @@ class ExcelViewerApp:
         # self.root.resizable(False, False)
 
         init_styles(self.root)
+        locale = get_locale()
+        if locale.startswith("en_"): 
+            locale = "en_US"
+        self.locale = locales[locale]
         
         self.current_file = None
         self.df = None
@@ -32,13 +38,13 @@ class ExcelViewerApp:
         self.select_button = ttk.Button(
             button_frame, 
             width=20,
-            text="Выбрать файл", 
+            text=self.locale["button"]["fileselect"], 
             style="hightlight.TButton",
             command=self.open_file
         )
         self.select_button.pack(side=tk.TOP, pady=15)
         
-        self.file_label = ttk.Label(button_frame, text="Файл не выбран")
+        self.file_label = ttk.Label(button_frame, text=self.locale["label"]["filenotselected"], style="primary.TLabel")
         self.file_label.pack(side=tk.BOTTOM)
         
         tree_frame = tk.Frame(self.root)
@@ -54,25 +60,37 @@ class ExcelViewerApp:
         self.plot_bar = tk.Frame(self.root)
         self.plot_bar.pack(fill=tk.X, pady=5, padx=5)
         
-        self.clear_selected_columns_button = ttk.Button(self.plot_bar, text="Очистить", command=self.clear_selected_columns)
+        self.clear_selected_columns_button = ttk.Button(
+            self.plot_bar, 
+            text=self.locale["button"]["clear"], 
+            command=self.clear_selected_columns
+        )
         self.clear_selected_columns_button.configure(style="clear.TButton")
         self.clear_selected_columns_button.pack(side=tk.LEFT, padx=10)
 
-        self.selected_columns_label = ttk.Label(self.plot_bar, text="Выберите столбцы")
+        self.selected_columns_label = ttk.Label(self.plot_bar, text=self.locale["label"]["columnsnotselected"], style="primary.TLabel")
         self.selected_columns_label.configure(style="primary.TLabel")
         self.selected_columns_label.pack(side=tk.LEFT)
 
-        self.plot2d_button = ttk.Button(self.plot_bar, text="2D график", command=self.plot_data_2d)
+        self.plot2d_button = ttk.Button(
+            self.plot_bar, 
+            text=self.locale["button"]["plot2d"], 
+            command=self.plot_data_2d
+        )
         self.plot2d_button.configure(style="primary.TButton")
         self.plot2d_button.pack(side=tk.RIGHT, pady=5)
 
-        self.plot3d_button = ttk.Button(self.plot_bar, text="3D график", command=self.plot_data_3d)
+        self.plot3d_button = ttk.Button(
+            self.plot_bar, 
+            text=self.locale["button"]["plot3d"], 
+            command=self.plot_data_3d
+        )
         self.plot3d_button.configure(style="primary.TButton")
         self.plot3d_button.pack(side=tk.RIGHT, pady=5)
         
         self.status_bar = ttk.Label(
             self.root, 
-            text="Готово",  
+            text=self.locale["status"]["fileselect"],  
             anchor=tk.W,
             style="status.TLabel"
         )
@@ -80,7 +98,7 @@ class ExcelViewerApp:
     
     def open_file(self):
         file_path = filedialog.askopenfilename(
-            title="Выберите файл XLSX",
+            title=f"{self.locale['button']['fileselect']} XLSX",
             filetypes=(("Excel files", "*.xlsx"), ("All files", "*.*"))
         )
         
@@ -96,16 +114,16 @@ class ExcelViewerApp:
             self.update_file_label()
             self.display_data()
             
-            self.status_bar.config(text=f"Успешно загружен файл: {os.path.basename(file_path)}")
+            self.status_bar.config(text=f"{self.locale['status']['loaded']}: {os.path.basename(file_path)}")
         except Exception as e:
-            self.status_bar.config(text=f"Ошибка: {str(e)}")
+            self.status_bar.config(text=f"{self.locale['status']['error']}: {str(e)}")
     
     def update_file_label(self):
         if self.current_file:
             self.file_label.config(text=os.path.basename(self.current_file))
             self.file_label.configure(style="success.TLabel")
         else:
-            self.file_label.config(text="Файл не выбран")
+            self.file_label.config(text=self.locale["label"]["filenotselected"])
     
     def display_data(self):
         self.tree.delete(*self.tree.get_children())
@@ -127,19 +145,21 @@ class ExcelViewerApp:
     
     def update_selected_cols_label(self):
         if not self.selected_columns:
-            self.selected_columns_label.config(text="Выберите столбцы")
+            self.selected_columns_label.config(text=self.locale["label"]["columnsnotselected"])
             return
         if len(self.selected_columns) == 1:
-            self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от остальных переменных")
+            self.selected_columns_label.config(
+                text=f"{self.locale['label']['plot']['plot']} {self.selected_columns[0]} {self.locale['label']['plot']['rest']}"
+            )
             return
             
         selected_cols_text = ', '.join(self.selected_columns[1::])
         screen_width = self.root.winfo_width()
-        print(screen_width)
-        print(len(selected_cols_text))
         if screen_width // len(selected_cols_text) < 16:
             selected_cols_text = selected_cols_text[:screen_width // 16] + '...'
-        self.selected_columns_label.config(text=f"График {self.selected_columns[0]} от {selected_cols_text}")
+        self.selected_columns_label.config(
+            text=f"{self.locale['label']['plot']['plot']} {self.selected_columns[0]} {self.locale['label']['plot']['of']} {selected_cols_text}"
+        )
             
     
     def toggle_select_column(self, col):
@@ -153,15 +173,15 @@ class ExcelViewerApp:
             
     def clear_selected_columns(self):
         self.selected_columns = []
-        self.selected_columns_label.config(text="Выберите столбцы")
+        self.selected_columns_label.config(text=self.locale["label"]["columnsnotselected"])
         
     
     def plot_data_3d(self):
         if self.df is None:
-            self.status_bar.config(text="Выберите файл")
+            self.status_bar.config(text=self.locale["status"]["fileselect"])
             return      
         if len(self.selected_columns) != 3:
-            self.status_bar.config(text="Выберите 3 столбца")
+            self.status_bar.config(text=self.locale["status"]["3derror"])
             return
         
         screen_size = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
@@ -170,7 +190,7 @@ class ExcelViewerApp:
 
     def plot_data_2d(self):
         if self.df is None:
-            self.status_bar.config(text="Выберите файл")
+            self.status_bar.config(text=self.locale["status"]["fileselect"])
             return
         if len(self.selected_columns) == 1:
             cols = [self.selected_columns[0]] + [col for col in self.df.columns if col != self.selected_columns[0]]
