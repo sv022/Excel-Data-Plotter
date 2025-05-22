@@ -8,6 +8,7 @@ from .csvplot.plot2d import plot2d
 from .styles import init_styles
 from .locales import locales
 from .locales.utils import get_locale
+from .utils import resource
 
 
 class ExcelViewerApp:
@@ -21,6 +22,11 @@ class ExcelViewerApp:
 
         try:
             self.root.iconbitmap(r"app/public/icon.ico")
+        except Exception:
+            pass
+
+        try:
+            self.root.iconbitmap(resource(r"app/public/icon.ico"))
         except Exception:
             pass
 
