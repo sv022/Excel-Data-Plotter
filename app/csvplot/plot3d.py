@@ -1,20 +1,17 @@
 import pandas as pd
 import plotly.graph_objects as go
-from ipywidgets import interact, Dropdown
+
 
 def plot3d(df, screen_size, view='points'):    
     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
     
     if len(numeric_cols) < 3:
-        print("Для построения 3D-графика нужно как минимум 3 числовых столбца!")
         return
     
-    @interact
     def interactive_3d_plot(
-        x_axis=Dropdown(options=numeric_cols, value=numeric_cols[2], description='Ось X:'),
-        y_axis=Dropdown(options=numeric_cols, value=numeric_cols[1], description='Ось Y:'),
-        z_axis=Dropdown(options=numeric_cols, value=numeric_cols[0], description='Ось Z:'),
-        color_by=Dropdown(options=numeric_cols+[None], value=None, description='Цвет по:'),
+        x_axis=numeric_cols[1],
+        y_axis=numeric_cols[2],
+        z_axis=numeric_cols[0],
         marker_size=5
     ):
         fig = go.Figure()
@@ -27,10 +24,10 @@ def plot3d(df, screen_size, view='points'):
                 mode='markers',
                 marker=dict(
                     size=marker_size,
-                    color=df[color_by] if color_by else None,
+                    color=None,
                     colorscale='Viridis',
                     opacity=0.8,
-                    colorbar=dict(title=color_by) if color_by else None
+                    colorbar=None
                 ),
                 name='Точки данных'
             ))
@@ -51,4 +48,4 @@ def plot3d(df, screen_size, view='points'):
         
         fig.show()
 
-    return interactive_3d_plot
+    return interactive_3d_plot()
