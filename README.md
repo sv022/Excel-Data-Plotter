@@ -16,7 +16,9 @@ This is python application built with Tkinter that plots data from Excel files.
 
 <!-- ![UI Demo](TODO)
 
+
 ![2D Plot](TODO)
+
 
 ![3D Plot](TODO) -->
 
